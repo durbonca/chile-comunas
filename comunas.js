@@ -8,6 +8,7 @@ var statistics = [
     'Human Development Index (2003)'
 ];
 
+//Compiled from data found on Wikipedia
 //TODO: add the extra digit for the HDI||QL
 var communeData = [
     ['Cerrillos',21,71906,84437,22234,0.083,72.93,0.743],
@@ -66,6 +67,8 @@ statChoosers[0].setAttribute('data-active', '');
 activeStatElement = statChoosers[0];
 
 var shadowSet = false;
+
+//Hide the shadow for the title when scrolled to top
 document.body.onscroll = function() {
     var scrollTop = document.body.scrollTop;
     if (scrollTop >= 10 && !shadowSet) {
@@ -82,34 +85,41 @@ document.body.onscroll = function() {
  * Map commune elements
  */
 for (let i = 0; i < COMMUNE_COUNT; i++) {
-    var name = communeData[i][0].replace(/\s/g, '-');
-    var mapCommuneElement = document.querySelector('#map .commune.' + name);
-    //var listElement = document.querySelector('#commune-list li.' + name);
+    var name = communeData[i][0].replace(/\s/g, '-'); //Replace spaces with a hyphen
+    //var mapCommuneElement = document.querySelector('#map .commune[data-name="' + name + '"]');
+    
+    //First element will be the list
+    //Second element will be the map object
+    var communeElements = document.querySelectorAll('[data-name="' + name + '"]');
+    console.log('[data-name="' + name + '"]');
 
-    mapCommuneElement.onmouseover = function(e) {
-        var targetName = e.target.classList[1];
-        var respectiveListElement = document.querySelector('#commune-list li.' + targetName);
+    var listElement = communeElements[0];
+    var mapElement = communeElements[1];
+
+    console.log(listElement, mapElement);
+
+    mapElement.onmouseover = function(e) {
+        var targetName = e.target.getAttribute('data-name');
+        var respectiveListElement = communeList.querySelector('[data-name="' + targetName + '"]');
+        
         console.log(targetName);
+        console.log(respectiveListElement);
         
-        maskAllExcept(targetName);
-
-        //Bring to front
-        e.target.parentNode.appendChild(e.target)
-
         //Highlight commune in list
-        //var activeCommune = document.querySelector('#map .commune.' + targetName);
-        e.target.removeAttribute('data-masked');
-        //e.target.setAttribute('data-active', '');
-        //activeCommune.removeAttribute('data-masked');
-        //activeCommune.setAttribute('data-active', '');
+        maskAllExcept(targetName);
         
+        //remove the attribute that maskAllExcept() previously set on active element
         respectiveListElement.removeAttribute('data-masked');
         respectiveListElement.setAttribute('data-active', 'true');
-}
 
-    mapCommuneElement.onmouseout = function(e) {
-        var targetName = e.target.classList[1];
-        var respectiveListElement = document.querySelector('#commune-list li.' + targetName);
+        //Bring map element to front
+        e.target.parentNode.appendChild(e.target)
+        e.target.removeAttribute('data-masked');
+    }
+
+    mapElement.onmouseout = function(e) {
+        var targetName = e.target.getAttribute('data-name');;
+        var respectiveListElement = communeList.querySelector('[data-name="' + targetName + '"]');
         
         //Reset the state of the active sector being departed
         respectiveListElement.removeAttribute('data-active');
@@ -130,12 +140,12 @@ for (let i = 0; i < COMMUNE_COUNT; i++) {
  */
 communeList.onmouseover = function(e) {
     if (e.target.nodeName == "LI") {
-        var targetName = e.target.classList[0];
+        var targetName = e.target.getAttribute('data-name');
         maskAllExcept(targetName);
-        console.log(targetName);
         e.target.removeAttribute('data-masked');
         
-        var respectiveMapElement = document.querySelector('#map .commune.' + targetName);
+        var respectiveMapElement = map.querySelector('[data-name="' + targetName + '"]');
+        console.log(e);
         respectiveMapElement.setAttribute('data-active', '');
         respectiveMapElement.removeAttribute('data-masked');
         //Bring to front
@@ -147,8 +157,8 @@ communeList.onmouseout = function(e) {
     if(e.target.nodeName != "LI") {
         resetMasks();
     } else {
-        var targetName = e.target.classList[0];
-        var respectiveMapElement = map.querySelector('.commune.' + targetName);
+        var targetName = e.target.getAttribute('data-name');
+        var respectiveMapElement = map.querySelector('[data-name="' + targetName + '"]');
         respectiveMapElement.removeAttribute('data-active');
         e.target.removeAttribute('data-active');
     }
@@ -183,22 +193,22 @@ for (let i = 0; i < statChoosers.length; i++) {
 
 /***
  * Masks all the list entries and map sectors that aren't already masked.
- * Doesn' mask the target commune.
+ * Doesn't mask the target commune.
  * 
  * @param {string} name Name of the commune to highlight
  */
 function maskAllExcept(name) {
-    var qualifiedMapElements = map.querySelectorAll('.commune:not(.' + name + '):not([data-masked])');
-    var qualifiedListElements = communeList.querySelectorAll('li:not(.' + name + '):not([data-masked])');
+    //var qualifiedMapElements = map.querySelectorAll(':not([data-name="' + name + '"]):not([data-masked])');
+    //var qualifiedListElements = communeList.querySelectorAll(':not([data-name="' + name + '"]):not([data-masked])');
 
     //All but one commune (active one) gets masked
-    for (var i = 0; i < qualifiedMapElements.length; i++) {
-        qualifiedMapElements[i].setAttribute('data-masked', '');
+    for (var i = 0; i < COMMUNE_COUNT; i++) {
+        communeMapElements[i].setAttribute('data-masked', '');
         //qualifiedListElements[i].setAttribute('data-masked', '');
     }
 
-    for (var i = 0; i < qualifiedListElements.length; i++) {
-        qualifiedListElements[i].setAttribute('data-masked', '');
+    for (var i = 0; i < COMMUNE_COUNT; i++) {
+        communeListItems[i].setAttribute('data-masked', '');
     }
 }
 /***
@@ -267,7 +277,7 @@ function sortList(colIndex) {
         var value = formatValue(colIndex, communeData[i][colIndex]);
         var encodedName = communeData[i][0].replace(/\s/g, '-');
                 
-        htmlString += '<li class="' + encodedName + '" data-rank="' + (i + 1) + '">' + name + '<div class="value">' + value + '</div></li>\n';
+        htmlString += '<li data-name="' + encodedName + '" data-rank="' + (i + 1) + '">' + name + '<div class="value">' + value + '</div></li>\n';
     }
     communeList.innerHTML = htmlString;  
 }
@@ -280,7 +290,7 @@ function updateMap(newColumnIndex) {
     for (var i = 0; i < COMMUNE_COUNT; i++) {
         var value = communeData[i][newColumnIndex];
         var encodedName = communeData[i][0].replace(/\s/g, '-');
-        var mapElement = document.querySelector('#map .commune.' + encodedName);
+        var mapElement = document.querySelector('#map .commune[data-name="' + encodedName + '"]');
 
         if (isNaN(value)) {
             //CSS sets the color based on rank.
