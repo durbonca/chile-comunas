@@ -91,20 +91,14 @@ for (let i = 0; i < COMMUNE_COUNT; i++) {
     //First element will be the list
     //Second element will be the map object
     var communeElements = document.querySelectorAll('[data-name="' + name + '"]');
-    console.log('[data-name="' + name + '"]');
-
     var listElement = communeElements[0];
     var mapElement = communeElements[1];
 
-    console.log(listElement, mapElement);
 
     mapElement.onmouseover = function(e) {
         var targetName = e.target.getAttribute('data-name');
         var respectiveListElement = communeList.querySelector('[data-name="' + targetName + '"]');
-        
-        console.log(targetName);
-        console.log(respectiveListElement);
-        
+                
         //Highlight commune in list
         maskAllExcept(targetName);
         
@@ -145,7 +139,6 @@ communeList.onmouseover = function(e) {
         e.target.removeAttribute('data-masked');
         
         var respectiveMapElement = map.querySelector('[data-name="' + targetName + '"]');
-        console.log(e);
         respectiveMapElement.setAttribute('data-active', '');
         respectiveMapElement.removeAttribute('data-masked');
         //Bring to front
@@ -170,7 +163,7 @@ communeList.onmouseout = function(e) {
  */
 for (let i = 0; i < statChoosers.length; i++) {
     statChoosers[i].onclick = function(e) {
-        console.log(e);
+        console.log('Changing statistic to ' + statistics[i]);
         //Remove the state from the previously active item
         activeStatElement.removeAttribute('data-active');
 
